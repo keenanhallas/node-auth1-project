@@ -2,7 +2,8 @@ const db = require("./connection");
 
 module.exports = {
     register,
-    findUser
+    findUser,
+    getUsers
 };
 
 function register(user) {
@@ -14,4 +15,8 @@ function findUser(username) {
     return db("users")
         .where({ username })
         .first();
+}
+
+function getUsers() {
+    return db("users");
 }

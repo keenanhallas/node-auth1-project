@@ -2,6 +2,8 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
+const session = require("express-session");
+const restrict = require("../restricted-middleware");
 
 //no routers needed probably
 
@@ -9,9 +11,22 @@ const db = require("../data/db-helper");
 
 const server = express();
 
+const sessionConfig = {
+    name: "best cookie ever",
+    secret: "it's chocolate chip", //use env here
+    cookie: {
+        maxAge: 1000 * 30,
+        secure: false, //true in production
+        httpOnly: true
+    },
+    resave: false,
+    saveUnitialized: false
+};
+
 server.use(helmet());
 server.use(express.json());
 server.use(cors());
+server.use(session(sessionConfig));
 
 server.get("/", (req, res) => {
     res.status(200).send("<h1>Authentication Practice</h1>");
@@ -40,6 +55,7 @@ server.post("/login", (req, res) => {
     db.findUser(req.body.username)
         .then(user => {
             if(user && bcrypt.compareSync(password, user.password)) {
+                req.session.user = user;
                 res.status(200).json({ Message: `Welcome ${user.username}!` });
             } else {
                 res.status(401).json({ message: "Invalid credentials" });
@@ -50,8 +66,14 @@ server.post("/login", (req, res) => {
         });
 })
 
-server.get("/users", (req, res) => {
-
+server.get("/users", restrict, (req, res) => {
+    db.getUsers()
+        .then(users => {
+            res.status(200).json({ users: users });
+        })
+        .catch(err => {
+            res.status(500).json({ message: err.message });
+        });
 })
 
 module.exports = server;
