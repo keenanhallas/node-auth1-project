@@ -1,10 +1,17 @@
 const db = require("./connection");
 
 module.exports = {
-    add
+    register,
+    findUser
 };
 
-function add(user) {
+function register(user) {
     return db("users")
         .insert(user);
+}
+
+function findUser(username) {
+    return db("users")
+        .where({ username })
+        .first();
 }

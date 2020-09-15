@@ -35,7 +35,19 @@ server.post("/register", (req, res) => {
 })
 
 server.post("/login", (req, res) => {
+    let { username, password } = req.body;
 
+    db.findUser(req.body.username)
+        .then(user => {
+            if(user && bcrypt.compareSync(password, user.password)) {
+                res.status(200).json({ Message: `Welcome ${user.username}!` });
+            } else {
+                res.status(401).json({ message: "Invalid credentials" });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ error: err.message} );
+        });
 })
 
 server.get("/users", (req, res) => {
